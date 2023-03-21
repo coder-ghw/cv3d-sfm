@@ -1,0 +1,37 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: sfm",
+            "args": [
+                "--data_dir=/home/guohw/data/projects/how-to-sfm/data",
+                "--dataset=fountain-P11",
+                "--out_dir=/home/guohw/data/projects/how-to-sfm/result/",
+                "--features=SIFT",
+                "--plot_error=True",
+                "--pnp_method=SOLVEPNP_DLS"
+            ],
+            "type": "python",
+            "request": "launch",
+            "program": "/home/guohw/data/projects/how-to-sfm/script/sfm.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: featmatch",
+            "args": [
+                "--data_dir=/home/guohw/data/projects/how-to-sfm/data/fountain-P11/images",
+                "--out_dir=/home/guohw/data/projects/how-to-sfm/data/fountain-P11/",
+                "--features=SIFT",
+            ],
+            "type": "python",
+            "request": "launch",
+            "program": "/home/guohw/data/projects/how-to-sfm/script/featmatch.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

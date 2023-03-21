@@ -3,7 +3,6 @@ data/
 *.ipynb
 *.pyc
 !tutorial.ipynb
-.vscode/
 *.ply
 *.txt
 result/
