@@ -8,4 +8,5 @@ data/
 *.txt
 result/
 cache/
-__pycache/
+__pycache__/
+

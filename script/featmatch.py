@@ -51,7 +51,7 @@ def FeatMatch(opts, data_files=[]):
         t2 = time()
 
         if (i % opts.print_every) == 0:    
-            print 'FEATURES DONE: {0}/{1} [time={2:.2f}s]'.format(i+1,len(img_paths),t2-t1)
+            print( 'FEATURES DONE: {0}/{1} [time={2:.2f}s]'.format(i+1,len(img_paths),t2-t1))
 
         t1 = time()
 
@@ -59,8 +59,8 @@ def FeatMatch(opts, data_files=[]):
     num_matches = ((len(img_paths)-1) * (len(img_paths))) / 2
 
     t1 = time()
-    for i in xrange(len(data)): 
-        for j in xrange(i+1, len(data)): 
+    for i in range(len(data)): 
+        for j in range(i+1, len(data)): 
             img_name1, kp1, desc1 = data[i]
             img_name2, kp2, desc2 = data[j]
 
@@ -79,7 +79,7 @@ def FeatMatch(opts, data_files=[]):
             t2 = time()
 
             if (num_done % opts.print_every) == 0: 
-                print 'MATCHES DONE: {0}/{1} [time={2:.2f}s]'.format(num_done, num_matches, t2-t1)
+                print( 'MATCHES DONE: {0}/{1} [time={2:.2f}s]'.format(num_done, num_matches, t2-t1))
 
             t1 = time()
             

@@ -1,6 +1,5 @@
 import cv2 
 import numpy as np 
-from itertools import izip 
 import matplotlib.pyplot as plt 
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
@@ -60,9 +59,9 @@ def GetEpipair(F, pts1, pts2,drawOnly=None):
     return epipair
 
 def GetFundamentalMatrix(img1,img2):
-    surfer=cv2.xfeatures2d.SIFT_create()
-    kp1, desc1 = surfer.detectAndCompute(img1.copy(),None)
-    kp2, desc2 = surfer.detectAndCompute(img2.copy(),None)
+    sift=cv2.SIFT_create()
+    kp1, desc1 = sift.detectAndCompute(img1.copy(),None)
+    kp2, desc2 = sift.detectAndCompute(img2.copy(),None)
 
     matcher = cv2.BFMatcher(crossCheck=True)
     matches = matcher.match(desc1, desc2)
@@ -83,7 +82,7 @@ def DrawMatchesCustom(img1,img2,kp1,kp2,F,drawOnly=None):
     
     drawOnly = kp1.shape[0] if (drawOnly is None) else drawOnly
     i = 0 
-    for pt1,pt2 in izip(kp1,kp2):
+    for pt1,pt2 in zip(kp1,kp2):
         color = tuple(list(np.random.uniform(size=(3,))))
         #print color 
         ax[0].plot(pt1[0],pt1[1],'x',c=color)
@@ -139,7 +138,7 @@ def PlotCamera(R,t,ax,scale=.5,depth=.5,faceColor='grey'):
 def DrawCorrespondences(img, ptsTrue, ptsReproj, ax, drawOnly=50): 
     ax.imshow(img)
     
-    randidx = np.random.choice(ptsTrue.shape[0],size=(drawOnly,),replace=False)
+    randidx = np.random.choice(ptsTrue.shape[0],size=(drawOnly,),replace=True)
     ptsTrue_, ptsReproj_ = ptsTrue[randidx], ptsReproj[randidx]
     
     colors = colors=np.random.rand(drawOnly,3)
@@ -148,9 +147,9 @@ def DrawCorrespondences(img, ptsTrue, ptsReproj, ax, drawOnly=50):
     ax.scatter(ptsReproj_[:,0],ptsReproj_[:,1],marker='.',c=colors)
 
 def GetImageMatches(img1,img2):
-    surfer=cv2.xfeatures2d.SURF_create()
-    kp1, desc1 = surfer.detectAndCompute(img1,None)
-    kp2, desc2 = surfer.detectAndCompute(img2,None)
+    sift=cv2.SIFT_create()
+    kp1, desc1 = sift.detectAndCompute(img1,None)
+    kp2, desc2 = sift.detectAndCompute(img2,None)
 
     matcher = cv2.BFMatcher(crossCheck=True)
     matches = matcher.match(desc1, desc2)

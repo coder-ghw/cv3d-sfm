@@ -54,20 +54,20 @@ class SFM(object):
             self.K = np.array([[3.97*320, 0, 320],[0, 3.97*320, 240],[0,0,1]])
         else: 
             raise NotImplementedError
-        
+
     def _LoadFeatures(self, name): 
-        with open(os.path.join(self.feat_dir,'kp_{}.pkl'.format(name)),'r') as f: 
+        with open(os.path.join(self.feat_dir,'kp_{}.pkl'.format(name)),'rb') as f: 
             kp = pickle.load(f)
         kp = DeserializeKeypoints(kp)
 
-        with open(os.path.join(self.feat_dir,'desc_{}.pkl'.format(name)),'r') as f: 
+        with open(os.path.join(self.feat_dir,'desc_{}.pkl'.format(name)),'rb') as f: 
             desc = pickle.load(f)
 
         return kp, desc 
 
     def _LoadMatches(self, name1, name2): 
         with open(os.path.join(self.matches_dir,'match_{}_{}.pkl'.format(name1,name2))
-                    ,'r') as f: 
+                    ,'rb') as f: 
             matches = pickle.load(f)
         matches = DeserializeMatches(matches)
         return matches
@@ -96,9 +96,10 @@ class SFM(object):
 
         img1pts, img2pts, img1idx, img2idx = self._GetAlignedMatches(kp1,desc1,kp2,
                                                                     desc2,matches)
-        
-        F,mask = cv2.findFundamentalMat(img1pts,img2pts,method=opts.fund_method,
-                                        param1=opts.outlier_thres,param2=opts.fund_prob)
+        F,mask = cv2.findFundamentalMat(img1pts,img2pts,
+                                        opts.fund_method,
+                                        opts.outlier_thres,
+                                        opts.fund_prob)
         mask = mask.astype(bool).flatten()
 
         E = self.K.T.dot(F.dot(self.K))
@@ -167,9 +168,9 @@ class SFM(object):
                     img1pts, img2pts, img1idx, img2idx = self._GetAlignedMatches(kp1,desc1,kp2,
                                                                                 desc2,matches)
                     
-                    F,mask = cv2.findFundamentalMat(img1pts,img2pts,method=opts.fund_method,
-                                                    param1=opts.outlier_thres,
-                                                    param2=opts.fund_prob)
+                    F,mask = cv2.findFundamentalMat(img1pts,img2pts,opts.fund_method,
+                                                    opts.outlier_thres,
+                                                    opts.fund_prob)
                     mask = mask.astype(bool).flatten()
 
                     self.matches_data[(prev_name,name)] = [matches, img1pts[mask], img2pts[mask], 
@@ -177,12 +178,11 @@ class SFM(object):
                     self._TriangulateTwoViews(prev_name, name)
 
                 else: 
-                    print 'skipping {} and {}'.format(prev_name, name)
+                    print('skipping {} and {}'.format(prev_name, name))
         
     def _NewViewPoseEstimation(self, name): 
         
         def _Find2D3DMatches(): 
-            
             matcher_temp = getattr(cv2, opts.matcher)()
             kps, descs = [], []
             for n in self.image_names: 
@@ -214,13 +214,12 @@ class SFM(object):
                     pts2d = np.concatenate((pts2d, new_pt[np.newaxis]),axis=0)
 
             return pts3d, pts2d, len(kp)
-        
+
         def __Find2D3DMatches():
             pts3d, pts2d = np.zeros((0,3)), np.zeros((0,2))
             kp, desc = self._LoadFeatures(name)
 
             i = 0 
-            
             while i < len(self.image_names): 
                 curr_name = self.image_names[i]
 
@@ -247,8 +246,8 @@ class SFM(object):
         R,_=cv2.Rodrigues(R)
         self.image_data[name] = [R,t,np.ones((ref_len,))*-1]
 
+
     def ToPly(self, filename):
-        
         def _GetColors(): 
             colors = np.zeros_like(self.point_cloud)
             
@@ -292,7 +291,6 @@ class SFM(object):
 
             fig.savefig(os.path.join(self.out_err_dir, '{}.png'.format(name)))
             plt.close(fig)
-            
         return err
         
     def Run(self):
@@ -300,20 +298,21 @@ class SFM(object):
 
         total_time, errors = 0, []
 
+
+        #1.pose estimation
         t1 = time()
         self._BaselinePoseEstimation(name1, name2)
         t2 = time()
         this_time = t2-t1
         total_time += this_time
-        print 'Baseline Cameras {0}, {1}: Pose Estimation [time={2:.3}s]'.format(name1, name2,
-                                                                                 this_time)
+        print('Baseline Cameras {0}, {1}: Pose Estimation [time={2:.3}s]'.format(name1, name2, this_time))
 
+        #2.triangulate two views
         self._TriangulateTwoViews(name1, name2)
         t1 = time()
         this_time = t1-t2
         total_time += this_time
-        print 'Baseline Cameras {0}, {1}: Baseline Triangulation [time={2:.3}s]'.format(name1, 
-                                                                                name2, this_time)
+        print('Baseline Cameras {0}, {1}: Baseline Triangulation [time={2:.3}s]'.format(name1, name2, this_time))
 
         views_done = 2 
 
@@ -325,25 +324,24 @@ class SFM(object):
         errors.append(err1)
         errors.append(err2)
 
-        print 'Camera {}: Reprojection Error = {}'.format(name1, err1)
-        print 'Camera {}: Reprojection Error = {}'.format(name2, err2)
+        print ('Camera {}: Reprojection Error = {}'.format(name1, err1))
+        print ('Camera {}: Reprojection Error = {}'.format(name2, err2))
 
         for new_name in self.image_names[2:]: 
-
             #new camera registration
             t1 = time()
             self._NewViewPoseEstimation(new_name)
             t2 = time()
             this_time = t2-t1
             total_time += this_time
-            print 'Camera {0}: Pose Estimation [time={1:.3}s]'.format(new_name, this_time)
+            print( 'Camera {0}: Pose Estimation [time={1:.3}s]'.format(new_name, this_time))
 
             #triangulation for new registered camera
             self._TriangulateNewView(new_name)
             t1 = time()
             this_time = t1-t2
             total_time += this_time
-            print 'Camera {0}: Triangulation [time={1:.3}s]'.format(new_name, this_time)
+            print( 'Camera {0}: Triangulation [time={1:.3}s]'.format(new_name, this_time))
 
             #3d point cloud update and error for new camera
             views_done += 1 
@@ -351,12 +349,12 @@ class SFM(object):
 
             new_err = self._ComputeReprojectionError(new_name)
             errors.append(new_err)
-            print 'Camera {}: Reprojection Error = {}'.format(new_name, new_err)
+            print( 'Camera {}: Reprojection Error = {}'.format(new_name, new_err))
 
         mean_error = sum(errors) / float(len(errors))
-        print 'Reconstruction Completed: Mean Reprojection Error = {2} [t={0:.6}s], \
-                Results stored in {1}'.format(total_time, self.opts.out_dir, mean_error)
-        
+        print( 'Reconstruction Completed: Mean Reprojection Error = {2} [t={0:.6}s], \
+                Results stored in {1}'.format(total_time, self.opts.out_dir, mean_error))
+
 
 def SetArguments(parser): 
 
@@ -416,6 +414,5 @@ if __name__=='__main__':
     SetArguments(parser)
     opts = parser.parse_args()
     PostprocessArgs(opts)
-    
     sfm = SFM(opts)
     sfm.Run()
