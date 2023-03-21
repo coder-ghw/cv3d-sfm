@@ -6,3 +6,6 @@ data/
 .vscode/
 *.ply
 *.txt
+result/
+cache/
+__pycache/
